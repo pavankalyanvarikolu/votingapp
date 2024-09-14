@@ -1,0 +1,95 @@
+pipeline {
+    agent any
+
+    tools {
+        nodejs 'NODEJS_18' // NodeJS version configured in Jenkins
+    }
+
+    environment {
+        DOCKER_IMAGE = 'bcvotingapp'
+        GIT_REPO = 'https://github.com/pavankalyanvarikolu/votingapp.git'
+        DOCKER_REGISTRY = 'docker.io'  // Docker registry (e.g., 'docker.io' for DockerHub)
+        DOCKER_REPOSITORY = 'pavanvarikolu/bcvotingapp'  // Your DockerHub repository
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: "${env.GIT_REPO}"
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install'
+            }
+        }
+
+        stage('Test Smart Contracts') {
+            steps {
+                sh 'truffle compile'
+                // Uncomment the lines below if you want to perform migration and tests
+                // sh 'truffle migrate --reset'
+                // sh 'truffle test'
+            }
+        }
+
+        stage('Docker Login') {
+            steps {
+                script {
+                    // Use stored credentials for Docker login
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub_creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        sh 'docker login -u $DOCKER_USER -p $DOCKER_PASS $DOCKER_REGISTRY'
+                    }
+                }
+            }
+        }
+
+        stage('Remove all the containers') {
+            steps {
+                script {
+                    sh '''
+                    docker stop \$(docker ps -a -q) || true
+                    docker rm \$(docker ps -a -q) || true
+                    '''
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh "docker build -t ${env.DOCKER_REPOSITORY}:latest ."
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    sh "docker push ${env.DOCKER_REPOSITORY}:latest"
+                }
+            }
+        }
+
+        stage('Run Application') {
+            steps {
+                script {
+                    sh "docker run -p 3000:3000 -d ${env.DOCKER_REPOSITORY}:latest"
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline finished'
+        }
+        success {
+            echo 'Pipeline succeeded'
+        }
+        failure {
+            echo 'Pipeline failed'
+        }
+    }
+}
