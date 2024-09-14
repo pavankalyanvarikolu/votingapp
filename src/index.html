@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Blockchain-based election voting platform displaying real-time election results.">
+    <title>Election Results</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <!-- Additional styles for better layout and accessibility -->
+    <style>
+      body {
+        padding-top: 20px;
+      }
+      #loader {
+        margin-top: 20px;
+      }
+      .container {
+        max-width: 650px;
+      }
+      .loading-spinner {
+        display: block;
+        margin: 0 auto;
+        width: 3rem;
+        height: 3rem;
+        border: 0.3rem solid rgba(0, 0, 0, 0.1);
+        border-top-color: #007bff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12">
+          <h1 class="text-center">Election Results</h1>
+          <hr/>
+          <div id="loader" class="text-center">
+            <div class="loading-spinner"></div>
+            <p>Loading results...</p>
+          </div>
+          <div id="content" style="display: none;">
+            <table class="table table-striped" aria-label="Election Results Table">
+              <thead class="thead-dark">
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Name</th>
+                  <th scope="col">Votes</th>
+                </tr>
+              </thead>
+              <tbody id="candidatesResults">
+              </tbody>
+            </table>
+            <hr/>
+            <p id="accountAddress" class="text-center" aria-live="polite"></p>
+          </div>
+
+          <!-- Voting Form -->
+          <form id="voteForm" onsubmit="App.castVote(); return false;" aria-label="Voting Form">
+            <div class="form-group">
+              <label for="candidatesSelect">Select Candidate</label>
+              <select class="form-control" id="candidatesSelect" aria-required="true">
+                <!-- Options will be populated by JS -->
+              </select>
+            </div>
+            <div class="text-center">
+              <button type="submit" class="btn btn-primary" aria-label="Submit your vote">Vote</button>
+            </div>
+            <hr/>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <!-- Bootstrap JavaScript plugins -->
+    <script src="js/bootstrap.min.js"></script>
+    <!-- Web3.js -->
+    <script src="js/web3.min.js"></script>
+    <!-- Truffle contract interaction -->
+    <script src="js/truffle-contract.js"></script>
+    <!-- Custom App logic -->
+    <script src="js/app.js"></script>
+
+    <script>
+      $(document).ready(function() {
+        // Simulating loading process
+        setTimeout(function() {
+          $('#loader').hide();
+          $('#content').fadeIn();
+        }, 1500);
+      });
+
+      // Voting form validation
+      document.getElementById('voteForm').onsubmit = function (e) {
+        const selectedCandidate = document.getElementById('candidatesSelect').value;
+        if (!selectedCandidate) {
+          alert('Please select a candidate before submitting your vote.');
+          e.preventDefault();
+        }
+      };
+    </script>
+  </body>
+</html>
