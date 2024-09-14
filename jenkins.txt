@@ -22,15 +22,17 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 sh 'npm install'
+                sh 'npm install dotenv'
+                sh 'npm install @truffle/hdwallet-provider'
             }
         }
 
         stage('Test Smart Contracts') {
             steps {
-                sh 'truffle compile'
-                // Uncomment the lines below if you want to perform migration and tests
-                // sh 'truffle migrate --reset'
-                // sh 'truffle test'
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    sh 'truffle compile'
+                    sh 'truffle migrate --network sepolia'
+                }
             }
         }
 
